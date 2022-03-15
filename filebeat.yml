@@ -1,396 +1,327 @@
+###################### Filebeat Configuration Example #########################
+
 # ============================== Filebeat inputs ===============================
 
 filebeat.inputs:
 
-# ------------------------- GitHub API - overview -------------------------
-# https://docs.github.com/en/rest/reference/
-# 
-# overall         GET /repos/{owner}/{repo}
-# contributors    GET /repos/{owner}/{repo}/contributors
-# languages       GET /repos/{owner}/{repo}/languages
-# tags            GET /repos/{owner}/{repo}/tags
-# releases        GET /repos/{owner}/{repo}/releases
-# issues          GET /repos/{owner}/{repo}/issues
-# issues/comments GET /repos/{owner}/{repo}/issues/comments
-# pulls           GET /repos/{owner}/{repo}/pulls
-# pulls/comments  GET /repos/{owner}/{repo}/pulls/comments
-# 
-# 采集方法：
-# 使用 Filebeat 的 httpjson 插件拉取api里的数据，
-# 然后将json格式的数据转换成方便分析的Elasticsearch文档。
+# ============================== 建议先获取这一部分的数据  ===============================
+# overall, contributors, releases, languages, tags 的数据少且重要，可以收工确认之后在做第二部分
 
-
-# # 获取 kubernetes 项目的概要信息 - overall
+# # 获取项目的概要信息 - overall
 # # GET /repos/{owner}/{repo}
 - type: httpjson
   interval: 5m
   config_version: 2
-  request.url: https://api.github.com/repos/kubernetes/kubernetes
+  request.url: https://api.github.com/repos/openshift/origin
   request.method: GET 
-  # # 在请求中增加个人认证令牌，提高数据获取条数限制
-  # request.transforms:
-  #   - set:
-  #       target: header.Authorization
-  #       value: 'token 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'
+  # 在请求中增加个人认证令牌，提高数据获取条数限制
+  request.transforms:
+    - set:
+        target: header.Authorization
+        value: 'token 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'
   # 使用数据处理器，修整数据
   processors:
     # 优化分析：增加方便搜索分析的字段  
     - add_fields: 
         fields:
-          project: kubernetes
+          project: origin
           kpi: overall
     # 解码裸json结果：将 message 字段中的 json 内容解码为多个字段
     - decode_json_fields: 
         fields: ["message"]
         target: "json"
-    # # 去重处理：根据 id 创建文档的唯一标识
-    # - fingerprint: 
-    #     fields: ["json.id"]
-    #     target_field: "@metadata._id"
 
-# # # 获取 kubernetes 项目的贡献者清单 - contributors
-# # # GET /repos/{owner}/{repo}/contributors 
-# - type: httpjson
-#   interval: 5m
-#   config_version: 2
-#   request.url: https://api.github.com/repos/kubernetes/kubernetes/contributors
-#   request.method: GET
-#   # 在请求中增加个人认证令牌，提高数据获取条数限制
-#   request.transforms:
-#     - set:
-#         target: header.Authorization
-#         value: 'token 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'
-#   # 滚动翻页：按照请求 url 中的页面大小向前翻页
-#   response.pagination: 
-#     - set: 
-#         target: url.params.page
-#         value: '[[add .last_response.page 1]]'
-#         fail_on_template: true     
-#   # 使用数据处理器修整数据
-#   processors:
-#     # 优化分析：增加方便搜索分析的字段  
-#     - add_fields: 
-#         fields:
-#           project: kubernetes
-#           kpi: contributors
-#     # 解码裸json结果：将 message 字段中的 json 内容解码为多个字段
-#     - decode_json_fields: 
-#         fields: ["message"]
-#         target: "json"
-#     # 去重处理：使用指纹处理器根据 id 创建文档的唯一标识
-#     - fingerprint: 
-#         fields: ["json.id"]
-#         target_field: "@metadata._id"
 
-# # # 获取 kubernetes 项目的各种编程语言的代码行数 - languages
-# # # GET /repos/{owner}/{repo}/languages 
-# - type: httpjson
-#   interval: 5m
-#   config_version: 2
-#   request.url: https://api.github.com/repos/kubernetes/kubernetes/languages
-#   request.method: GET 
-#   # 使用数据处理器，修整数据
-#   processors:
-#     # 优化分析：增加方便搜索分析的字段  
-#     - add_fields: 
-#         fields:
-#           project: kubernetes
-#           kpi: languages
-#     # 解码裸json结果：将 message 字段中的 json 内容解码为多个字段
-#     - decode_json_fields: 
-#         fields: ["message"]
-#         target: "json"
+# 获取项目的贡献者清单 - contributors
+# GET /repos/{owner}/{repo}/contributors 
+- type: httpjson
+  interval: 5m
+  config_version: 2
+  request.url: https://api.github.com/repos/openshift/origin/contributors
+  request.method: GET
+  # 在请求中增加个人认证令牌，提高数据获取条数限制
+  request.transforms:
+    - set:
+        target: header.Authorization
+        value: 'token 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'
+  # 滚动翻页：按照请求 url 中的页面大小向前翻页
+  response.pagination: 
+    - set: 
+        target: url.params.page
+        value: '[[add .last_response.page 1]]'
+        fail_on_template: true     
+  # 使用数据处理器修整数据
+  processors:
+    # 优化分析：增加方便搜索分析的字段  
+    - add_fields: 
+        fields:
+          project: origin
+          kpi: contributors
+    # 解码裸json结果：将 message 字段中的 json 内容解码为多个字段
+    - decode_json_fields: 
+        fields: ["message"]
+        target: "json"
+    # 去重处理：使用指纹处理器根据 id 创建文档的唯一标识
+    - fingerprint: 
+        fields: ["json.id"]
+        target_field: "@metadata._id"
 
-# # # 获取 kubernetes 项目的标签清单 - tags  
-# # # GET /repos/{owner}/{repo}/tags  
-# - type: httpjson
-#   interval: 5m
-#   config_version: 2
-#   request.url: https://api.github.com/repos/kubernetes/kubernetes/tags
-#   request.method: GET
-#   # 滚动翻页：按照请求 url 中的页面大小向前翻页
-#   response.pagination: 
-#     - set: 
-#         target: url.params.page
-#         value: '[[add .last_response.page 1]]'
-#         fail_on_template: true   
-#   # 使用数据处理器，修整数据
-#   processors:
-#     # 优化分析：增加方便搜索分析的字段  
-#     - add_fields: 
-#         fields:
-#           project: kubernetes
-#           kpi: tags
-#     # 解码裸json结果：将 message 字段中的 json 内容解码为多个字段
-#     - decode_json_fields: 
-#         fields: ["message"]
-#         target: "json"
-#     # 去重处理：使用指纹处理器根据 id 创建文档的唯一标识
-#     - fingerprint: 
-#         fields: ["json.node_id"]
-#         target_field: "@metadata._id"
 
-# # 获取 kubernetes 项目的版本发布历史 - releases  
-# # GET /repos/{owner}/{repo}/releases
-# - type: httpjson
-#   interval: 5m
-#   config_version: 2
-#   request.url: https://api.github.com/repos/kubernetes/kubernetes/releases
-#   request.method: GET
-#   # 滚动翻页：按照请求 url 中的页面大小向前翻页
-#   response.pagination: 
-#     - set: 
-#         target: url.params.page
-#         value: '[[add .last_response.page 1]]'
-#         fail_on_template: true   
-#   # 使用数据处理器，修整数据
-#   processors:
-#     # 优化分析：增加方便搜索分析的字段  
-#     - add_fields: 
-#         fields:
-#           project: kubernetes
-#           kpi: releases
-#     # 解码裸json结果：将 message 字段中的 json 内容解码为多个字段
-#     - decode_json_fields: 
-#         fields: ["message"]
-#         target: "json"
-#     # 去重处理：使用指纹处理器根据 id 创建文档的唯一标识
-#     - fingerprint: 
-#         fields: ["json.id"]
-#         target_field: "@metadata._id"
-#     # 设置时间戳：用 create_at 字段作为文档的时间戳 
-#     - timestamp: 
-#         field: json.created_at
-#         layouts:
-#           - '2006-01-02T15:04:05Z'
-#           - '2006-01-02T15:04:05.999Z'
-#           - '2006-01-02T15:04:05.999-07:00'
-#         test:
-#           - '2019-06-22T16:33:51Z'
-#           - '2019-11-18T04:59:51.123Z'
-#           - '2020-08-03T07:10:20.123456+02:00'
+# 获取项目的版本发布历史 - releases  
+# GET /repos/{owner}/{repo}/releases
+- type: httpjson
+  interval: 5m
+  config_version: 2
+  request.url: https://api.github.com/repos/openshift/origin/releases?since=2019-01-01T00:00:00
+  request.method: GET
+  # 在请求中增加个人认证令牌，提高数据获取条数限制
+  request.transforms:
+    - set:
+        target: header.Authorization
+        value: 'token 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'
+  # 滚动翻页：按照请求 url 中的页面大小向前翻页
+  response.pagination: 
+    - set: 
+        target: url.params.page
+        value: '[[add .last_response.page 1]]'
+        fail_on_template: true   
+  # 使用数据处理器，修整数据
+  processors:
+    # 优化分析：增加方便搜索分析的字段  
+    - add_fields: 
+        fields:
+          project: origin
+          kpi: releases
+    # 解码裸json结果：将 message 字段中的 json 内容解码为多个字段
+    - decode_json_fields: 
+        fields: ["message"]
+        target: "json"
+    # 去重处理：使用指纹处理器根据 id 创建文档的唯一标识
+    - fingerprint: 
+        fields: ["json.id"]
+        target_field: "@metadata._id"
+    # 设置时间戳：用 published_at 字段作为文档的时间戳 
+    - timestamp: 
+        field: json.published_at
+        layouts:
+          - '2006-01-02T15:04:05Z'
+          - '2006-01-02T15:04:05.999Z'
+          - '2006-01-02T15:04:05.999-07:00'
+        test:
+          - '2019-06-22T16:33:51Z'
+          - '2019-11-18T04:59:51.123Z'
+          - '2020-08-03T07:10:20.123456+02:00'
 
-# # 获取 kubernetes 项目的所有 issue （oepn/closed）- issues 
-# # GET /repos/{owner}/{repo}/issues
-# - type: httpjson
-#   interval: 5m
-#   config_version: 2
-#   request.url: https://api.github.com/repos/kubernetes/kubernetes/issues?state=all
-#   request.method: GET
-#   # 在请求中增加个人认证令牌，提高数据获取条数限制
-#   request.transforms:
-#     - set:
-#         target: header.Authorization
-#         value: 'token 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'
-#   # 滚动翻页：按照请求 url 中的页面大小向前翻页
-#   response.pagination: 
-#     - set: 
-#         target: url.params.page
-#         value: '[[add .last_response.page 1]]'
-#         fail_on_template: true    
-#   # 使用数据处理器，修整数据
-#   processors:
-#     # 优化分析：增加方便搜索分析的字段  
-#     - add_fields: 
-#         fields:
-#           project: kubernetes
-#           kpi: issues
-#     # 解码裸json结果：将 message 字段中的 json 内容解码为多个字段
-#     - decode_json_fields: 
-#         fields: ["message"]
-#         target: "json"
-#     # 设置时间戳：用 create_at 字段作为文档的时间戳 
-#     - timestamp: 
-#         field: json.created_at
-#         layouts:
-#           - '2006-01-02T15:04:05Z'
-#           - '2006-01-02T15:04:05.999Z'
-#           - '2006-01-02T15:04:05.999-07:00'
-#         test:
-#           - '2019-06-22T16:33:51Z'
-#           - '2019-11-18T04:59:51.123Z'
-#           - '2020-08-03T07:10:20.123456+02:00'
-#     # 去重处理：使用指纹处理器根据 id 创建文档的唯一标识
-#     - fingerprint: 
-#         fields: ["json.id"]
-#         target_field: "@metadata._id"
-#     # 同步更新：更新已经摄入的数据内容
-#     - script:  
-#         lang: javascript
-#         id: update_instead_of_ignore_same_id
-#         source: >
-#           function process(event) {
-#             event.Put("@metadata.op_type", "index")
-#           }  
+# 获取 origin 项目的各种编程语言的代码行数 - languages
+# GET /repos/{owner}/{repo}/languages 
+- type: httpjson
+  interval: 5m
+  config_version: 2
+  request.url: https://api.github.com/repos/openshift/origin/languages
+  request.method: GET 
+  # 在请求中增加个人认证令牌，提高数据获取条数限制
+  request.transforms:
+    - set:
+        target: header.Authorization
+        value: 'token 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'
+  # 使用数据处理器，修整数据
+  processors:
+    # 优化分析：增加方便搜索分析的字段  
+    - add_fields: 
+        fields:
+          project: origin
+          kpi: languages
+    # 解码裸json结果：将 message 字段中的 json 内容解码为多个字段
+    - decode_json_fields: 
+        fields: ["message"]
+        target: "json"
 
-# # 获取 kubernetes 项目所有 issue 的评论【只看2022年以来的，旧的先不要】 - issues/comments 
-# # GET /repos/{owner}/{repo}/issues/comments
-# - type: httpjson
-#   interval: 5m
-#   config_version: 2
-#   request.url: https://api.github.com/repos/kubernetes/kubernetes/issues/comments?since=2022-01-01T00:00:00
-#   request.method: GET
-#   # 在请求中增加个人认证令牌，提高数据获取条数限制
-#   request.transforms:
-#     - set:
-#         target: header.Authorization
-#         value: 'token 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'
-#   # 滚动翻页：按照请求 url 中的页面大小向前翻页
-#   response.pagination: 
-#     - set: 
-#         target: url.params.page
-#         value: '[[add .last_response.page 1]]'
-#         fail_on_template: true    
-#   # 使用数据处理器，修整数据
-#   processors:
-#     # 优化分析：增加方便搜索分析的字段  
-#     - add_fields: 
-#         fields:
-#           project: kubernetes
-#           kpi: issue-comments
-#     # 解码裸json结果：将 message 字段中的 json 内容解码为多个字段
-#     - decode_json_fields: 
-#         fields: ["message"]
-#         target: "json"
-#     # 设置时间戳：用 create_at 字段作为文档的时间戳 
-#     - timestamp: 
-#         field: json.created_at
-#         layouts:
-#           - '2006-01-02T15:04:05Z'
-#           - '2006-01-02T15:04:05.999Z'
-#           - '2006-01-02T15:04:05.999-07:00'
-#         test:
-#           - '2019-06-22T16:33:51Z'
-#           - '2019-11-18T04:59:51.123Z'
-#           - '2020-08-03T07:10:20.123456+02:00'
-#     # 去重处理：使用指纹处理器根据 issue 的 id 创建文档的唯一标识
-#     - fingerprint: 
-#         fields: ["json.id"]
-#         target_field: "@metadata._id"
+# # 获取 origin 项目的标签清单 - tags  
+# # GET /repos/{owner}/{repo}/tags  
+- type: httpjson
+  interval: 5m
+  config_version: 2
+  request.url: https://api.github.com/repos/openshift/origin/tags
+  request.method: GET
+  # 在请求中增加个人认证令牌，提高数据获取条数限制
+  request.transforms:
+    - set:
+        target: header.Authorization
+        value: 'token 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'
+  # 滚动翻页：按照请求 url 中的页面大小向前翻页
+  response.pagination: 
+    - set: 
+        target: url.params.page
+        value: '[[add .last_response.page 1]]'
+        fail_on_template: true   
+  # 使用数据处理器，修整数据
+  processors:
+    # 优化分析：增加方便搜索分析的字段  
+    - add_fields: 
+        fields:
+          project: origin
+          kpi: tags
+    # 解码裸json结果：将 message 字段中的 json 内容解码为多个字段
+    - decode_json_fields: 
+        fields: ["message"]
+        target: "json"
+    # 去重处理：使用指纹处理器根据 id 创建文档的唯一标识
+    - fingerprint: 
+        fields: ["json.node_id"]
+        target_field: "@metadata._id"
 
-# # 获取 kubernetes 项目的所有 pull request （open/closed） - pulls 
-# # GET /repos/{owner}/{repo}/pulls
-# - type: httpjson
-#   interval: 5m
-#   config_version: 2
-#   request.url: https://api.github.com/repos/kubernetes/kubernetes/pulls?state=all
-#   request.method: GET
-#   # 在请求中增加个人认证令牌，提高数据获取条数限制
-#   request.transforms:
-#     - set:
-#         target: header.Authorization
-#         value: 'token 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'
-#   # 滚动翻页：按照请求 url 中的页面大小向前翻页
-#   response.pagination: 
-#     - set: 
-#         target: url.params.page
-#         value: '[[add .last_response.page 1]]'
-#         fail_on_template: true    
-#   # 使用数据处理器，修整数据
-#   processors:
-#     # 优化分析：增加方便搜索分析的字段  
-#     - add_fields: 
-#         fields:
-#           project: kubernetes
-#           kpi: pulls
-#     # 解码裸json结果：将 message 字段中的 json 内容解码为多个字段
-#     - decode_json_fields: 
-#         fields: ["message"]
-#         target: "json"
-#     # 设置时间戳：用 create_at 字段作为文档的时间戳 
-#     - timestamp: 
-#         field: json.created_at
-#         layouts:
-#           - '2006-01-02T15:04:05Z'
-#           - '2006-01-02T15:04:05.999Z'
-#           - '2006-01-02T15:04:05.999-07:00'
-#         test:
-#           - '2019-06-22T16:33:51Z'
-#           - '2019-11-18T04:59:51.123Z'
-#           - '2020-08-03T07:10:20.123456+02:00'
-#     # 去重处理：使用指纹处理器根据 id 创建文档的唯一标识
-#     - fingerprint: 
-#         fields: ["json.id"]
-#         target_field: "@metadata._id"
-#     # 同步更新：更新已经摄入的数据内容
-#     - script:  
-#         lang: javascript
-#         id: update_instead_of_ignore_same_id
-#         source: >
-#           function process(event) {
-#             event.Put("@metadata.op_type", "index")
-#           }  
+# ============================== 建议后获取这部分的数据  ===============================
+# issues、 pulls 的数据量一般不会少，建议在 request.url 上使用 SINCE 参数，先获取进三个月的数据
 
-# # 获取 kubernetes 项目所有 pull request 的评论【只看2022年以来的，旧的先不要】 - pulls/comments 
-# # GET /repos/{owner}/{repo}/pulls/comments
-# - type: httpjson
-#   interval: 5m
-#   config_version: 2
-#   request.url: https://api.github.com/repos/kubernetes/kubernetes/pulls/comments?since=2022-01-01T00:00:00
-#   request.method: GET
-#   # 在请求中增加个人认证令牌，提高数据获取条数限制
-#   request.transforms:
-#     - set:
-#         target: header.Authorization
-#         value: 'token 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'
-#   # 滚动翻页：按照请求 url 中的页面大小向前翻页
-#   response.pagination: 
-#     - set: 
-#         target: url.params.page
-#         value: '[[add .last_response.page 1]]'
-#         fail_on_template: true    
-#   # 使用数据处理器，修整数据
-#   processors:
-#     # 优化分析：增加方便搜索分析的字段  
-#     - add_fields: 
-#         fields:
-#           project: kubernetes
-#           kpi: pull-comments
-#     # 解码裸json结果：将 message 字段中的 json 内容解码为多个字段
-#     - decode_json_fields: 
-#         fields: ["message"]
-#         target: "json"
-#     # 设置时间戳：用  create_at 字段作为文档的时间戳 
-#     - timestamp: 
-#         field: json.created_at
-#         layouts:
-#           - '2006-01-02T15:04:05Z'
-#           - '2006-01-02T15:04:05.999Z'
-#           - '2006-01-02T15:04:05.999-07:00'
-#         test:
-#           - '2019-06-22T16:33:51Z'
-#           - '2019-11-18T04:59:51.123Z'
-#           - '2020-08-03T07:10:20.123456+02:00'
-#     # 去重处理：使用指纹处理器根据 id 创建文档的唯一标识
-#     - fingerprint: 
-#         fields: ["json.id"]
-#         target_field: "@metadata._id"
-#     # 同步更新：更新已经摄入的数据内容
-#     - script:  
-#         lang: javascript
-#         id: update_instead_of_ignore_same_id
-#         source: >
-#           function process(event) {
-#             event.Put("@metadata.op_type", "index")
-#           }  
+# 获取项目的所有 issue （oepn/closed）- issues 
+# GET /repos/{owner}/{repo}/issues
+- type: httpjson
+  interval: 5m
+  config_version: 2
+  request.url: https://api.github.com/repos/openshift/origin/issues?state=all&per_page=100
+  request.method: GET
+  # 在请求中增加个人认证令牌，提高数据获取条数限制
+  request.transforms:
+    - set:
+        target: header.Authorization
+        value: 'token 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'
+  # 滚动翻页：按照请求 url 中的页面大小向前翻页
+  response.pagination: 
+    - set: 
+        target: url.params.page
+        value: '[[add .last_response.page 1]]'
+        fail_on_template: true    
+  # 使用数据处理器，修整数据
+  processors:
+    # 优化分析：增加方便搜索分析的字段  
+    - add_fields: 
+        fields:
+          project: origin
+          kpi: issues
+    # 解码裸json结果：将 message 字段中的 json 内容解码为多个字段
+    - decode_json_fields: 
+        fields: ["message"]
+        target: "json"
+    # 设置时间戳：用 create_at 字段作为文档的时间戳 
+    - timestamp: 
+        field: json.created_at
+        layouts:
+          - '2006-01-02T15:04:05Z'
+          - '2006-01-02T15:04:05.999Z'
+          - '2006-01-02T15:04:05.999-07:00'
+        test:
+          - '2019-06-22T16:33:51Z'
+          - '2019-11-18T04:59:51.123Z'
+          - '2020-08-03T07:10:20.123456+02:00'
+    # 去重处理：使用指纹处理器根据 id 创建文档的唯一标识
+    - fingerprint: 
+        fields: ["json.id"]
+        target_field: "@metadata._id"
+    # 同步更新：更新已经摄入的数据内容
+    - script:  
+        lang: javascript
+        id: update_instead_of_ignore_same_id
+        source: >
+          function process(event) {
+            event.Put("@metadata.op_type", "index")
+          }  
+
+
+# 获取 origin 项目的所有 pull request （open/closed） - pulls 
+# GET /repos/{owner}/{repo}/pulls
+- type: httpjson
+  interval: 5m
+  config_version: 2
+  request.url: https://api.github.com/repos/openshift/origin/pulls?state=all&per_page=100
+  request.method: GET
+  # 在请求中增加个人认证令牌，提高数据获取条数限制
+  request.transforms:
+    - set:
+        target: header.Authorization
+        value: 'token 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'
+  # 滚动翻页：按照请求 url 中的页面大小向前翻页
+  response.pagination: 
+    - set: 
+        target: url.params.page
+        value: '[[add .last_response.page 1]]'
+        fail_on_template: true    
+  # 使用数据处理器，修整数据
+  processors:
+    # 优化分析：增加方便搜索分析的字段  
+    - add_fields: 
+        fields:
+          project: origin
+          kpi: pulls
+    # 解码裸json结果：将 message 字段中的 json 内容解码为多个字段
+    - decode_json_fields: 
+        fields: ["message"]
+        target: "json"
+    # 设置时间戳：用 create_at 字段作为文档的时间戳 
+    - timestamp: 
+        field: json.created_at
+        layouts:
+          - '2006-01-02T15:04:05Z'
+          - '2006-01-02T15:04:05.999Z'
+          - '2006-01-02T15:04:05.999-07:00'
+        test:
+          - '2019-06-22T16:33:51Z'
+          - '2019-11-18T04:59:51.123Z'
+          - '2020-08-03T07:10:20.123456+02:00'
+    # 去重处理：使用指纹处理器根据 id 创建文档的唯一标识
+    - fingerprint: 
+        fields: ["json.id"]
+        target_field: "@metadata._id"
+    # 同步更新：更新已经摄入的数据内容
+    - script:  
+        lang: javascript
+        id: update_instead_of_ignore_same_id
+        source: >
+          function process(event) {
+            event.Put("@metadata.op_type", "index")
+          }  
 
 
 
-# ---------------------------- Elasticsearch Output ----------------------------
-setup.template.pattern: "github-oss-projects-%{[agent.version]}"
-setup.template.name: "github-oss-projects"
+# ======================= Elasticsearch template setting =======================
+
+# 配置索引模版基础属性
+setup.template.overwrite: true
+setup.template.settings:
+  index.number_of_shards: 1
+  number_of_replicas: 0
+  index.mapping.total_fields.limit: 5000
+
+setup.template.name: "filebeat"
+setup.template.pattern: "filebeat-*"
+setup.template.fields: "fields.yml"
+
+# 添加附加的json字段
+setup.template.json.enabled: true
+setup.template.json.path: "add_gh_fields.json"
+setup.template.json.name: "add_gh_fields"
+
+# 禁用ilm功能
 setup.ilm.enabled: false
 
-output.elasticsearch:
-  # Array of hosts to connect to.
-  hosts: ["localhost:9200"]
-  index: "github-oss-projects-%{[agent.version]}"
+# ================================== General ===================================
+name: github-crawler
 
-# ================================== Logging ===================================
-# logging.level: debug
+# ================================== Outputs ===================================
+
+# ---------------------------- Elasticsearch Output ----------------------------
+output.elasticsearch:
+  hosts: ["localhost:9200"]
+  worker: 5
+  index: "filebeat-7"
 
 # ================================= Processors =================================
-# 删除 Filebeeat 采集到的无关数据，节省本地存储空间
+# 删除 Filebeeat 采集到的无关数据，节省存储空间
 processors:
  - drop_fields:
-     fields: ["ecs", "agent", "log", "input", "host", "message"]          
+     fields: ["ecs", "agent", "input", "host", "message"]    
+
+# ================================== Logging ===================================
+#logging.level: debug
+
+# ============================= X-Pack Monitoring ==============================
+monitoring.enabled: true
