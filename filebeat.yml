@@ -10,7 +10,7 @@ filebeat.inputs:
 # # 获取项目的概要信息 - overall
 # # GET /repos/{owner}/{repo}
 - type: httpjson
-  interval: 5m
+  interval: 120m
   config_version: 2
   request.url: https://api.github.com/repos/openshift/origin
   request.method: GET 
@@ -18,7 +18,7 @@ filebeat.inputs:
   request.transforms:
     - set:
         target: header.Authorization
-        value: 'token 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'
+        value: 'token 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'
   # 使用数据处理器，修整数据
   processors:
     # 优化分析：增加方便搜索分析的字段  
@@ -35,7 +35,7 @@ filebeat.inputs:
 # 获取项目的贡献者清单 - contributors
 # GET /repos/{owner}/{repo}/contributors 
 - type: httpjson
-  interval: 5m
+  interval: 120m
   config_version: 2
   request.url: https://api.github.com/repos/openshift/origin/contributors
   request.method: GET
@@ -43,7 +43,7 @@ filebeat.inputs:
   request.transforms:
     - set:
         target: header.Authorization
-        value: 'token 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'
+        value: 'token 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'
   # 滚动翻页：按照请求 url 中的页面大小向前翻页
   response.pagination: 
     - set: 
@@ -70,15 +70,15 @@ filebeat.inputs:
 # 获取项目的版本发布历史 - releases  
 # GET /repos/{owner}/{repo}/releases
 - type: httpjson
-  interval: 5m
+  interval: 120m
   config_version: 2
-  request.url: https://api.github.com/repos/openshift/origin/releases?since=2019-01-01T00:00:00
+  request.url: https://api.github.com/repos/openshift/origin/releases
   request.method: GET
   # 在请求中增加个人认证令牌，提高数据获取条数限制
   request.transforms:
     - set:
         target: header.Authorization
-        value: 'token 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'
+        value: 'token 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'
   # 滚动翻页：按照请求 url 中的页面大小向前翻页
   response.pagination: 
     - set: 
@@ -115,7 +115,7 @@ filebeat.inputs:
 # 获取 origin 项目的各种编程语言的代码行数 - languages
 # GET /repos/{owner}/{repo}/languages 
 - type: httpjson
-  interval: 5m
+  interval: 120m
   config_version: 2
   request.url: https://api.github.com/repos/openshift/origin/languages
   request.method: GET 
@@ -123,7 +123,7 @@ filebeat.inputs:
   request.transforms:
     - set:
         target: header.Authorization
-        value: 'token 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'
+        value: 'token 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'
   # 使用数据处理器，修整数据
   processors:
     # 优化分析：增加方便搜索分析的字段  
@@ -139,7 +139,7 @@ filebeat.inputs:
 # # 获取 origin 项目的标签清单 - tags  
 # # GET /repos/{owner}/{repo}/tags  
 - type: httpjson
-  interval: 5m
+  interval: 120m
   config_version: 2
   request.url: https://api.github.com/repos/openshift/origin/tags
   request.method: GET
@@ -147,7 +147,7 @@ filebeat.inputs:
   request.transforms:
     - set:
         target: header.Authorization
-        value: 'token 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'
+        value: 'token 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'
   # 滚动翻页：按照请求 url 中的页面大小向前翻页
   response.pagination: 
     - set: 
@@ -176,15 +176,15 @@ filebeat.inputs:
 # 获取项目的所有 issue （oepn/closed）- issues 
 # GET /repos/{owner}/{repo}/issues
 - type: httpjson
-  interval: 5m
+  interval: 120m
   config_version: 2
-  request.url: https://api.github.com/repos/openshift/origin/issues?state=all&per_page=100
+  request.url: https://api.github.com/repos/openshift/origin/issues?state=all
   request.method: GET
   # 在请求中增加个人认证令牌，提高数据获取条数限制
   request.transforms:
     - set:
         target: header.Authorization
-        value: 'token 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'
+        value: 'token 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'
   # 滚动翻页：按照请求 url 中的页面大小向前翻页
   response.pagination: 
     - set: 
@@ -230,15 +230,15 @@ filebeat.inputs:
 # 获取 origin 项目的所有 pull request （open/closed） - pulls 
 # GET /repos/{owner}/{repo}/pulls
 - type: httpjson
-  interval: 5m
+  interval: 120m
   config_version: 2
-  request.url: https://api.github.com/repos/openshift/origin/pulls?state=all&per_page=100
+  request.url: https://api.github.com/repos/openshift/origin/pulls?state=all
   request.method: GET
   # 在请求中增加个人认证令牌，提高数据获取条数限制
   request.transforms:
     - set:
         target: header.Authorization
-        value: 'token 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'
+        value: 'token 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'
   # 滚动翻页：按照请求 url 中的页面大小向前翻页
   response.pagination: 
     - set: 
@@ -321,7 +321,7 @@ processors:
      fields: ["ecs", "agent", "input", "host", "message"]    
 
 # ================================== Logging ===================================
-#logging.level: debug
+logging.level: debug
 
 # ============================= X-Pack Monitoring ==============================
-monitoring.enabled: true
+# monitoring.enabled: true
