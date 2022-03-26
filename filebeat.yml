@@ -5,26 +5,26 @@
 filebeat.inputs:
 
 # ============================== 建议先获取这一部分的数据  ===============================
-# overall, contributors, releases, languages, tags 的数据少且重要，可以收工确认之后在做第二部分
+# overall, contributors, releases, languages, tags 的数据少且重要，可以手工确认之后在做第二部分
 
-# # 获取项目的概要信息 - overall
-# # GET /repos/{owner}/{repo}
+# 获取项目的概要信息 - overall
+# GET /repos/{owner}/{repo}
 - type: httpjson
-  interval: 120m
+  interval: 150m
   config_version: 2
-  request.url: https://api.github.com/repos/openshift/origin
+  request.url: https://api.github.com/repos/ansible/awx
   request.method: GET 
   # 在请求中增加个人认证令牌，提高数据获取条数限制
   request.transforms:
     - set:
         target: header.Authorization
-        value: 'token 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'
+        value: 'token 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'
   # 使用数据处理器，修整数据
   processors:
     # 优化分析：增加方便搜索分析的字段  
     - add_fields: 
         fields:
-          project: origin
+          project: awx
           kpi: overall
     # 解码裸json结果：将 message 字段中的 json 内容解码为多个字段
     - decode_json_fields: 
@@ -33,17 +33,21 @@ filebeat.inputs:
 
 
 # 获取项目的贡献者清单 - contributors
-# GET /repos/{owner}/{repo}/contributors 
+# GET /repos/{owner}/{repo}/contributors , 按贡献度倒序返回几百个并不是全完整清单 ？？？
 - type: httpjson
-  interval: 120m
+  interval: 150m
   config_version: 2
-  request.url: https://api.github.com/repos/openshift/origin/contributors
+  request.url: https://api.github.com/repos/ansible/awx/contributors
   request.method: GET
   # 在请求中增加个人认证令牌，提高数据获取条数限制
   request.transforms:
     - set:
         target: header.Authorization
-        value: 'token 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'
+        value: 'token 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'
+  request.transforms: 
+    - set:
+        target: header.Accept
+        value: 'application/vnd.github.v3+json'
   # 滚动翻页：按照请求 url 中的页面大小向前翻页
   response.pagination: 
     - set: 
@@ -55,7 +59,7 @@ filebeat.inputs:
     # 优化分析：增加方便搜索分析的字段  
     - add_fields: 
         fields:
-          project: origin
+          project: awx
           kpi: contributors
     # 解码裸json结果：将 message 字段中的 json 内容解码为多个字段
     - decode_json_fields: 
@@ -70,15 +74,19 @@ filebeat.inputs:
 # 获取项目的版本发布历史 - releases  
 # GET /repos/{owner}/{repo}/releases
 - type: httpjson
-  interval: 120m
+  interval: 150m
   config_version: 2
-  request.url: https://api.github.com/repos/openshift/origin/releases
+  request.url: https://api.github.com/repos/ansible/awx/releases
   request.method: GET
+  # auth.basic:
+  #   enabled: true
+  #   user: martinliu
+  #   password: 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
   # 在请求中增加个人认证令牌，提高数据获取条数限制
   request.transforms:
     - set:
         target: header.Authorization
-        value: 'token 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'
+        value: 'token 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'
   # 滚动翻页：按照请求 url 中的页面大小向前翻页
   response.pagination: 
     - set: 
@@ -90,7 +98,7 @@ filebeat.inputs:
     # 优化分析：增加方便搜索分析的字段  
     - add_fields: 
         fields:
-          project: origin
+          project: awx
           kpi: releases
     # 解码裸json结果：将 message 字段中的 json 内容解码为多个字段
     - decode_json_fields: 
@@ -115,21 +123,21 @@ filebeat.inputs:
 # 获取 origin 项目的各种编程语言的代码行数 - languages
 # GET /repos/{owner}/{repo}/languages 
 - type: httpjson
-  interval: 120m
+  interval: 150m
   config_version: 2
-  request.url: https://api.github.com/repos/openshift/origin/languages
+  request.url: https://api.github.com/repos/ansible/awx/languages
   request.method: GET 
   # 在请求中增加个人认证令牌，提高数据获取条数限制
   request.transforms:
     - set:
         target: header.Authorization
-        value: 'token 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'
+        value: 'token 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'
   # 使用数据处理器，修整数据
   processors:
     # 优化分析：增加方便搜索分析的字段  
     - add_fields: 
         fields:
-          project: origin
+          project: awx
           kpi: languages
     # 解码裸json结果：将 message 字段中的 json 内容解码为多个字段
     - decode_json_fields: 
@@ -139,15 +147,15 @@ filebeat.inputs:
 # # 获取 origin 项目的标签清单 - tags  
 # # GET /repos/{owner}/{repo}/tags  
 - type: httpjson
-  interval: 120m
+  interval: 150m
   config_version: 2
-  request.url: https://api.github.com/repos/openshift/origin/tags
+  request.url: https://api.github.com/repos/ansible/awx/tags?per_page=100
   request.method: GET
   # 在请求中增加个人认证令牌，提高数据获取条数限制
   request.transforms:
     - set:
         target: header.Authorization
-        value: 'token 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'
+        value: 'token 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'
   # 滚动翻页：按照请求 url 中的页面大小向前翻页
   response.pagination: 
     - set: 
@@ -159,7 +167,7 @@ filebeat.inputs:
     # 优化分析：增加方便搜索分析的字段  
     - add_fields: 
         fields:
-          project: origin
+          project: awx
           kpi: tags
     # 解码裸json结果：将 message 字段中的 json 内容解码为多个字段
     - decode_json_fields: 
@@ -170,21 +178,25 @@ filebeat.inputs:
         fields: ["json.node_id"]
         target_field: "@metadata._id"
 
-# ============================== 建议后获取这部分的数据  ===============================
-# issues、 pulls 的数据量一般不会少，建议在 request.url 上使用 SINCE 参数，先获取进三个月的数据
+# # # ============================== 建议后获取这部分的数据  ===============================
+# # # issues、 pulls 的数据量一般不会少，建议在 request.url 上使用 SINCE 参数，先获取进三个月的数据
 
 # 获取项目的所有 issue （oepn/closed）- issues 
 # GET /repos/{owner}/{repo}/issues
 - type: httpjson
-  interval: 120m
+  interval: 150m
   config_version: 2
-  request.url: https://api.github.com/repos/openshift/origin/issues?state=all
+  request.url: https://api.github.com/repos/ansible/awx/issues?state=all&per_page=100
   request.method: GET
   # 在请求中增加个人认证令牌，提高数据获取条数限制
+  request.transforms: 
+    - set:
+        target: header.Accept
+        value: 'application/vnd.github.v3+json'
   request.transforms:
     - set:
         target: header.Authorization
-        value: 'token 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'
+        value: 'token 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'
   # 滚动翻页：按照请求 url 中的页面大小向前翻页
   response.pagination: 
     - set: 
@@ -196,7 +208,7 @@ filebeat.inputs:
     # 优化分析：增加方便搜索分析的字段  
     - add_fields: 
         fields:
-          project: origin
+          project: awx
           kpi: issues
     # 解码裸json结果：将 message 字段中的 json 内容解码为多个字段
     - decode_json_fields: 
@@ -230,15 +242,15 @@ filebeat.inputs:
 # 获取 origin 项目的所有 pull request （open/closed） - pulls 
 # GET /repos/{owner}/{repo}/pulls
 - type: httpjson
-  interval: 120m
+  interval: 150m
   config_version: 2
-  request.url: https://api.github.com/repos/openshift/origin/pulls?state=all
+  request.url: https://api.github.com/repos/ansible/awx/pulls?state=all&per_page=100
   request.method: GET
   # 在请求中增加个人认证令牌，提高数据获取条数限制
   request.transforms:
     - set:
         target: header.Authorization
-        value: 'token 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'
+        value: 'token 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'
   # 滚动翻页：按照请求 url 中的页面大小向前翻页
   response.pagination: 
     - set: 
@@ -250,7 +262,7 @@ filebeat.inputs:
     # 优化分析：增加方便搜索分析的字段  
     - add_fields: 
         fields:
-          project: origin
+          project: awx
           kpi: pulls
     # 解码裸json结果：将 message 字段中的 json 内容解码为多个字段
     - decode_json_fields: 
@@ -295,7 +307,7 @@ setup.template.name: "filebeat"
 setup.template.pattern: "filebeat-*"
 setup.template.fields: "fields.yml"
 
-# 添加附加的json字段
+# 修改部分 json 字段默认的数据类型
 setup.template.json.enabled: true
 setup.template.json.path: "add_gh_fields.json"
 setup.template.json.name: "add_gh_fields"
@@ -324,4 +336,4 @@ processors:
 logging.level: debug
 
 # ============================= X-Pack Monitoring ==============================
-# monitoring.enabled: true
+monitoring.enabled: true
