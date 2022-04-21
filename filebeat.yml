@@ -18,7 +18,7 @@ filebeat.inputs:
   request.transforms:
     - set:
         target: header.Authorization
-        value: 'token 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'
+        value: 'token ghp_Tx9xAbV7O6fuXYZ1234567890'
   # 使用数据处理器，修整数据
   processors:
     # 优化分析：增加方便搜索分析的字段  
@@ -43,7 +43,7 @@ filebeat.inputs:
   request.transforms:
     - set:
         target: header.Authorization
-        value: 'token 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'
+        value: 'token ghp_Tx9xAbV7O6fuXYZ1234567890'
   request.transforms: 
     - set:
         target: header.Accept
@@ -81,12 +81,12 @@ filebeat.inputs:
   # auth.basic:
   #   enabled: true
   #   user: martinliu
-  #   password: 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
+  #   password: ghp_Tx9xAbV7O6fuXYZ1234567890
   # 在请求中增加个人认证令牌，提高数据获取条数限制
   request.transforms:
     - set:
         target: header.Authorization
-        value: 'token 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'
+        value: 'token ghp_Tx9xAbV7O6fuXYZ1234567890'
   # 滚动翻页：按照请求 url 中的页面大小向前翻页
   response.pagination: 
     - set: 
@@ -131,7 +131,7 @@ filebeat.inputs:
   request.transforms:
     - set:
         target: header.Authorization
-        value: 'token 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'
+        value: 'token ghp_Tx9xAbV7O6fuXYZ1234567890'
   # 使用数据处理器，修整数据
   processors:
     # 优化分析：增加方便搜索分析的字段  
@@ -155,7 +155,7 @@ filebeat.inputs:
   request.transforms:
     - set:
         target: header.Authorization
-        value: 'token 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'
+        value: 'token ghp_Tx9xAbV7O6fuXYZ1234567890'
   # 滚动翻页：按照请求 url 中的页面大小向前翻页
   response.pagination: 
     - set: 
@@ -196,7 +196,7 @@ filebeat.inputs:
   request.transforms:
     - set:
         target: header.Authorization
-        value: 'token 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'
+        value: 'token ghp_Tx9xAbV7O6fuXYZ1234567890'
   # 滚动翻页：按照请求 url 中的页面大小向前翻页
   response.pagination: 
     - set: 
@@ -250,7 +250,7 @@ filebeat.inputs:
   request.transforms:
     - set:
         target: header.Authorization
-        value: 'token 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'
+        value: 'token ghp_Tx9xAbV7O6fuXYZ1234567890'
   # 滚动翻页：按照请求 url 中的页面大小向前翻页
   response.pagination: 
     - set: 
